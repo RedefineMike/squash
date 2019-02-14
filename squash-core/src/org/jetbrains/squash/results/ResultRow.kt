@@ -20,9 +20,9 @@ interface ResultRow {
     fun columnValue(type: KClass<*>, index: Int): Any?
 }
 
-operator inline fun <reified V> ResultRow.get(name: String): V = columnValue(V::class, name) as V
-operator inline fun <reified V> ResultRow.get(index: Int): V = columnValue(V::class, index) as V
-operator inline fun <reified V> ResultRow.get(column: Column<V>): V = columnValue(V::class, column)
+inline operator fun <reified V> ResultRow.get(name: String): V = columnValue(V::class, name) as V
+inline operator fun <reified V> ResultRow.get(index: Int): V = columnValue(V::class, index) as V
+inline operator fun <reified V> ResultRow.get(column: Column<V>): V = columnValue(V::class, column)
 
 fun <V> ResultRow.columnValue(type: KClass<*>, column: Column<V>): V {
     val label = if (column is AliasColumn) column.label.id else column.name.id

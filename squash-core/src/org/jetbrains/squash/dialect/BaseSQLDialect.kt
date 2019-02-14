@@ -20,7 +20,7 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
     }
 
     @Suppress("NOTHING_TO_INLINE")
-    inline private fun Char.isIdentifierStart(): Boolean = this in 'a'..'z' || this in 'A'..'Z' || this == '_'
+	private inline fun Char.isIdentifierStart(): Boolean = this in 'a'..'z' || this in 'A'..'Z' || this == '_'
 
     open fun isSqlIdentifier(id: String): Boolean {
         if (id.isEmpty()) return false
