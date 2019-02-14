@@ -2,8 +2,8 @@ package org.jetbrains.squash.expressions
 
 interface FunctionExpression<out R> : Expression<R>
 
-class CountExpression(val value: Expression<*>) : FunctionExpression<Long>
-class CountDistinctExpression(val value: Expression<*>) : FunctionExpression<Long>
+class CountExpression(val value: Expression<*>? = null) : FunctionExpression<Long>
+class CountDistinctExpression(val value:Expression<*>? = null) : FunctionExpression<Long>
 class MinExpression(val value: Expression<*>) : FunctionExpression<Long>
 class MaxExpression(val value: Expression<*>) : FunctionExpression<Long>
 class SumExpression(val value: Expression<*>) : FunctionExpression<Long>

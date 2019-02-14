@@ -144,14 +144,22 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
     open fun <T> appendFunctionExpression(builder: SQLStatementBuilder, expression: FunctionExpression<T>) = with(builder) {
         when (expression) {
             is CountExpression -> {
-                append("COUNT(")
-                appendExpression(this, expression.value)
-                append(")")
+				if (expression.value == null) {
+					append("COUNT(*)")
+				} else {
+					append("COUNT(")
+					appendExpression(this, expression.value)
+					append(")")
+				}
             }
             is CountDistinctExpression -> {
-                append("COUNT(DISTINCT ")
-                appendExpression(this, expression.value)
-                append(")")
+				if (expression.value == null) {
+					append("COUNT(DISTINCT *)")
+				} else {
+					append("COUNT(DISTINCT ")
+					appendExpression(this, expression.value)
+					append(")")
+				}
             }
             is MaxExpression -> {
                 append("MAX(")
