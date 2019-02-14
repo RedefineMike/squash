@@ -1,7 +1,7 @@
 package org.jetbrains.squash.drivers
 
 import org.jetbrains.squash.connection.*
-import java.math.*
+import java.math.BigInteger
 import java.sql.*
 import java.time.*
 import kotlin.reflect.*

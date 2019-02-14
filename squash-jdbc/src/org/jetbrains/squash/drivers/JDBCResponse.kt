@@ -1,7 +1,9 @@
 package org.jetbrains.squash.drivers
 
-import org.jetbrains.squash.results.*
-import java.sql.*
+import org.jetbrains.squash.results.Response
+import org.jetbrains.squash.results.ResultRow
+import java.sql.ResultSet
+import java.sql.ResultSetMetaData
 
 class JDBCResponse(val conversion: JDBCDataConversion, val resultSet: ResultSet) : Response {
     private val metadata = resultSet.metaData
