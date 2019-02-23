@@ -16,6 +16,11 @@ fun select(selector: () -> Expression<*>) = QueryStatement().select(selector)
 fun Table.where(selector: () -> Expression<Boolean>) = from(this).where(selector)
 fun Table.select(selector: () -> Expression<*>) = from(this).select(selector)
 fun Table.select(vararg expression: Expression<*>) = from(this).select(*expression)
+fun Table.selectAll(vararg tables:Table) = from(this).select(AllTableColumnsExpression(this)).apply {
+	for (table in tables) {
+		select(AllTableColumnsExpression(table))
+	}
+}
 
 fun <Q : QueryBuilder> Q.innerJoin(target: CompoundElement, on: () -> Expression<Boolean>): Q = innerJoin(target, on())
 fun <Q : QueryBuilder> Q.leftJoin(target: CompoundElement, on: () -> Expression<Boolean>): Q = leftJoin(target, on())
