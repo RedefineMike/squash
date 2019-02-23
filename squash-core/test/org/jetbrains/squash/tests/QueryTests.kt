@@ -25,6 +25,16 @@ abstract class QueryTests : DatabaseTests {
         }
     }
 
+	@Test fun selectAllColumnsFromTable() {
+		withCities { 
+			val query = Citizens.selectAll()
+			
+			connection.dialect.statementSQL(query).assertSQL {
+				"SELECT Citizens.* FROM Citizens"
+			}
+		}
+	}
+	
     @Test fun selectFromWhere() {
         withCities {
             val eugene = literal("eugene")
