@@ -216,7 +216,7 @@
         <snapshotRepository>
             <id>snapshots</id>
             <name>live-maven-01-snapshots</name>
-            <url>https://mvn.cloudwatch.net/artifactory/libs-snapshot</url>
+            <url>https://mvn.cloudwatch.net/artifactory/libs-snapshot-local</url>
         </snapshotRepository>
     </distributionManagement>
 
