@@ -8,9 +8,7 @@ import org.jetbrains.squash.statements.insertInto
 import org.jetbrains.squash.statements.values
 import org.jetbrains.squash.tests.data.*
 import java.math.BigDecimal
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import kotlin.test.*
 
 abstract class QueryTests : DatabaseTests {
     open fun nullsLast(sql: String): String = "$sql NULLS LAST"
