@@ -472,8 +472,6 @@ abstract class QueryTests : DatabaseTests {
 					.and(CityStats.name eq "population")
 				)
 			
-			println(connection.dialect.statementSQL(query))
-			
 			val result = query.execute().single()
 			assertEquals(1500000, result["minimum"], "Minimum city population does not match")
 			assertEquals(6200000, result["maximum"], "Maximum city population does not match")
