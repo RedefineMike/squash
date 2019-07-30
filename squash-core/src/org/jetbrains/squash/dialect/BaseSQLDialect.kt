@@ -193,6 +193,25 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
 				appendExpression(this, expression.value)
 				append(")")
 			}
+			is GeneralFunctionExpression<*> -> {
+				append("${expression.name}(")
+				expression.arguments?.forEachIndexed { index, arg ->
+					// Add a comma between arguments after the first one
+					if (index > 0) {
+						append(", ")
+					}
+
+					// Handle column expressions vs constant values / primitive arguments
+					when (arg) {
+						is Expression<*> -> appendExpression(this, arg)
+						else -> {
+							append("?")
+							appendArgument(arg)
+						}
+					}
+				}
+				append(")")
+			}
             else -> error("Function '$expression' is not supported by ${this@BaseSQLDialect}")
         }
     }

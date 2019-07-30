@@ -4,6 +4,11 @@ import java.math.BigDecimal
 
 interface FunctionExpression<out R> : Expression<R>
 
+class GeneralFunctionExpression<T>(
+	val name:String,
+	val arguments:List<Any>?
+) : FunctionExpression<T>
+
 /**
  * Represents any function with a name, single column argument, and return value.
  */
