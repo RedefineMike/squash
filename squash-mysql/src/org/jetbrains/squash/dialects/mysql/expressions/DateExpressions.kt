@@ -3,7 +3,7 @@ package org.jetbrains.squash.dialects.mysql.expressions
 import org.jetbrains.squash.dialects.mysql.expressions.MysqlTimeUnit.Companion.from
 import org.jetbrains.squash.expressions.Expression
 import org.jetbrains.squash.expressions.FunctionExpression
-import org.jetbrains.squash.expressions.GeneralFunctionExpression
+import org.jetbrains.squash.expressions.ColumnFunctionExpression
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -11,7 +11,7 @@ import java.time.temporal.ChronoUnit
 /**
  *  Extract the date part of a date or datetime expression
  */
-fun Expression<*>.date() = GeneralFunctionExpression<LocalDate>("DATE", this)
+fun Expression<*>.date() = ColumnFunctionExpression<LocalDate>("DATE", this)
 
 /**
  *  Subtract a time value (using Java [ChronoUnit]) from a date
@@ -36,12 +36,12 @@ fun Expression<*>.dateAdd(days:Long) = MysqlDateMathFunction("DATE_ADD", this, M
 /**
  * Return the year part of a date.
  */
-fun Expression<*>.year() = GeneralFunctionExpression<Int>("YEAR", this)
+fun Expression<*>.year() = ColumnFunctionExpression<Int>("YEAR", this)
 
 /**
  *  Return the month from the date passed.
  */
-fun Expression<*>.month() = GeneralFunctionExpression<Int>("MONTH", this)
+fun Expression<*>.month() = ColumnFunctionExpression<Int>("MONTH", this)
 
 /**
  * Return the day of the month part of a date.
@@ -51,23 +51,23 @@ fun Expression<*>.day() = dayOfMonth()
 /**
  * Return the day of the month part of a date.
  */
-fun Expression<*>.dayOfMonth() = GeneralFunctionExpression<Int>("DAYOFMONTH", this)
+fun Expression<*>.dayOfMonth() = ColumnFunctionExpression<Int>("DAYOFMONTH", this)
 
 /**
  *  Return the numeric weekday from a date (1 = Sunday, 2 = Monday, …, 7 = Saturday).
  *  This function conforms to ODBC standard.
  */
-fun Expression<*>.dayOfWeek() = GeneralFunctionExpression<Int>("DAYOFWEEK", this)
+fun Expression<*>.dayOfWeek() = ColumnFunctionExpression<Int>("DAYOFWEEK", this)
 
 /**
  *  Return the numeric weekday index from a date (0 = Monday, 1 = Tuesday, … 6 = Sunday).
  */
-fun Expression<*>.weekDay() = GeneralFunctionExpression<Int>("WEEKDAY", this)
+fun Expression<*>.weekDay() = ColumnFunctionExpression<Int>("WEEKDAY", this)
 
 /**
  * Return the numeric day of the year from a date.
  */
-fun Expression<*>.dayOfYear() = GeneralFunctionExpression<Int>("DAYOFYEAR", this)
+fun Expression<*>.dayOfYear() = ColumnFunctionExpression<Int>("DAYOFYEAR", this)
 
 /*
  * Date Math

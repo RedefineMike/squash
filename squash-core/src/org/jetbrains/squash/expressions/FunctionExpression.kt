@@ -4,10 +4,15 @@ import java.math.BigDecimal
 
 interface FunctionExpression<out R> : Expression<R>
 
-/**
- * Represents any function with a name, single argument, and return value.
- */
 class GeneralFunctionExpression<T>(
+	val name:String,
+	val arguments:List<Any>?
+) : FunctionExpression<T>
+
+/**
+ * Represents any function with a name, single column argument, and return value.
+ */
+class ColumnFunctionExpression<T>(
 		val name:String,
 		val value:Expression<*>
 ) : FunctionExpression<T>
@@ -17,7 +22,7 @@ class CountDistinctExpression(val value:Expression<*>? = null) : FunctionExpress
 
 fun Expression<*>.count() = CountExpression(this)
 fun Expression<*>.countDistinct() = CountDistinctExpression(this)
-fun <T> Expression<T>.min() = GeneralFunctionExpression<T>("MIN",this)
-fun <T> Expression<T>.max() = GeneralFunctionExpression<T>("MAX", this)
-fun <T> Expression<T>.sum() = GeneralFunctionExpression<T>("SUM",this)
-fun Expression<*>.average() = GeneralFunctionExpression<BigDecimal>("AVG",this)
+fun <T> Expression<T>.min() = ColumnFunctionExpression<T>("MIN",this)
+fun <T> Expression<T>.max() = ColumnFunctionExpression<T>("MAX", this)
+fun <T> Expression<T>.sum() = ColumnFunctionExpression<T>("SUM",this)
+fun Expression<*>.average() = ColumnFunctionExpression<BigDecimal>("AVG",this)
