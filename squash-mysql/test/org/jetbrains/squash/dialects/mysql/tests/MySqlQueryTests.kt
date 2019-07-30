@@ -2,12 +2,16 @@ package org.jetbrains.squash.dialects.mysql.tests
 
 import org.jetbrains.squash.dialects.mysql.expressions.*
 import org.jetbrains.squash.expressions.alias
+import org.jetbrains.squash.query.limit
+import org.jetbrains.squash.query.orderBy
 import org.jetbrains.squash.query.select
 import org.jetbrains.squash.results.get
 import org.jetbrains.squash.tests.DatabaseTests
 import org.jetbrains.squash.tests.QueryTests
 import org.jetbrains.squash.tests.data.AllColumnTypes
+import org.jetbrains.squash.tests.data.Cities
 import org.jetbrains.squash.tests.data.withAllColumnTypes
+import org.jetbrains.squash.tests.data.withCities
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -66,5 +70,34 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 		assertEquals(LocalDateTime.of(1976, 11, 24, 5, 22), result["minusHours"], "dateSub(3, hours) result is incorrect")
 		assertEquals(LocalDate.of(1976, 11, 25), result["plusDays"], "dateAdd(days) result is incorrect")
 		assertEquals(LocalDateTime.of(1976, 11, 24, 11, 22), result["plusHours"], "dateAdd(3, hours) result is incorrect")
+	}
+
+	@Test
+	@Suppress("UNUSED_VARIABLE")
+	fun mysqlRandFunction() = withTransaction { 
+		val query = select { 
+			rand(5).alias("randomNumber")
+		}
+
+		connection.dialect.statementSQL(query).assertSQL {
+			"SELECT RAND(?) AS randomNumber"
+		}
+
+		val result = query.execute().single().get<Double>("randomNumber")
+	}
+	
+	@Test
+	@Suppress("UNUSED_VARIABLE")
+	fun mysqlRandOrderBy() = withCities {
+		val query = Cities
+				.select(Cities.id, Cities.name)
+				.orderBy { rand() }
+				.limit(1)
+
+		connection.dialect.statementSQL(query).assertSQL {
+			"SELECT Cities.id, Cities.name FROM Cities ORDER BY ISNULL(RAND()), RAND() LIMIT ?"
+		}
+
+		val result = query.execute().single().get<String>("name")
 	}
 }
