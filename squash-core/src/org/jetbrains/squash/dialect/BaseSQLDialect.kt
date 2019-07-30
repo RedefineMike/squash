@@ -188,7 +188,7 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
 					append(")")
 				}
             }
-			is GeneralFunctionExpression -> {
+			is ColumnFunctionExpression -> {
 				append("${expression.name}(")
 				appendExpression(this, expression.value)
 				append(")")
