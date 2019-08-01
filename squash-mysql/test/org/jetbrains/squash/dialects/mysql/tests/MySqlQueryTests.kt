@@ -2,16 +2,15 @@ package org.jetbrains.squash.dialects.mysql.tests
 
 import org.jetbrains.squash.dialects.mysql.expressions.*
 import org.jetbrains.squash.expressions.alias
-import org.jetbrains.squash.query.limit
-import org.jetbrains.squash.query.orderBy
-import org.jetbrains.squash.query.select
+import org.jetbrains.squash.expressions.eq
+import org.jetbrains.squash.query.*
 import org.jetbrains.squash.results.get
+import org.jetbrains.squash.statements.fetch
+import org.jetbrains.squash.statements.insertInto
+import org.jetbrains.squash.statements.values
 import org.jetbrains.squash.tests.DatabaseTests
 import org.jetbrains.squash.tests.QueryTests
-import org.jetbrains.squash.tests.data.AllColumnTypes
-import org.jetbrains.squash.tests.data.Cities
-import org.jetbrains.squash.tests.data.withAllColumnTypes
-import org.jetbrains.squash.tests.data.withCities
+import org.jetbrains.squash.tests.data.*
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -99,5 +98,34 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 		}
 
 		val result = query.execute().single().get<String>("name")
+	}
+	
+	@Test
+	fun mysqlGroupConcat() = withCities {
+
+		val munichId = Cities.select(Cities.id).where {
+			Cities.name eq "Munich"
+		}.execute().single().get(Cities.id)
+		
+		val query = Cities
+				.select(
+					Cities.name,
+					groupConcat(
+						Citizens.name,
+						separator = ";",
+						orderBy = listOf(QueryOrder.Ascending(Citizens.name))
+					).alias("peopleNames")
+				).innerJoin(Citizens) {
+					Citizens.cityId eq Cities.id
+				}.where { 
+					Cities.id eq munichId
+				}
+
+		connection.dialect.statementSQL(query).assertSQL {
+			"SELECT Cities.name, GROUP_CONCAT(Citizens.name ORDER BY Citizens.name SEPARATOR ?) AS peopleNames FROM Cities INNER JOIN Citizens ON Citizens.city_id = Cities.id WHERE Cities.id = ?"
+		}
+
+		val result = query.execute().single().get<String>("peopleNames")
+		assertEquals("Eugene;Sergey", result, "Group Concat column `peopleNames` are not as expected.")
 	}
 }
