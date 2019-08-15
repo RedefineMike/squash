@@ -46,4 +46,4 @@ infix fun <V> Expression<V>.within(values: Collection<V>): InExpression<V> = InE
 
 fun <V> literal(value: V) = LiteralExpression(value)
 fun <V> subquery(body: QueryBuilder.() -> Unit) = SubQueryExpression<V>(QueryStatement().apply(body))
-infix fun Expression<String>.like(literal: String): Expression<Boolean> = LikeExpression(this, LiteralExpression(literal))
+infix fun Expression<String?>.like(literal: String): Expression<Boolean> = LikeExpression(this, LiteralExpression(literal))
