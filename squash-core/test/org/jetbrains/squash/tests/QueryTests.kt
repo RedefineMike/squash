@@ -169,6 +169,22 @@ abstract class QueryTests : DatabaseTests {
         }
     }
 
+	@Test fun selectFromWhereLike() {
+		withCities {
+			val query = select(Citizens.name).from(Citizens)
+					.where { 
+						Citizens.name.like("Ser%")
+					}
+			
+			connection.dialect.statementSQL(query).assertSQL {
+				"SELECT Citizens.name FROM Citizens WHERE Citizens.name LIKE ?"
+			}
+
+			val result = query.execute().single().get<String>("name")
+			assertEquals("Sergey", result, "Like query should have returned 'Sergey'.")
+		}
+	}
+
     @Test fun selectFromJoin() {
         withTables {
             val query = from(Citizens)
