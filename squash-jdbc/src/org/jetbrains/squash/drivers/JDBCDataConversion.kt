@@ -29,7 +29,7 @@ open class JDBCDataConversion {
             value is Timestamp -> value.toLocalDateTime()
             value is Date -> value.toLocalDate()
             value is Time -> value.toLocalTime()
-            value is Blob -> JDBCBinaryObject(value.getBytes(1, value.length().toInt()))
+			value is Boolean && type.javaObjectType == Int::class.javaObjectType -> if (value) 1 else 0
             value is ByteArray && type == BinaryObject::class -> JDBCBinaryObject(value)
 			value is Double && type.javaObjectType == BigDecimal::class.java -> value.toBigDecimal()
 			value is Int && type.javaObjectType == BigInteger::class.java -> value.toBigInteger()
@@ -40,6 +40,7 @@ open class JDBCDataConversion {
             value is Int && type.javaObjectType == Long::class.javaObjectType -> value.toLong()
             value is BigInteger && type.javaObjectType == Int::class.javaObjectType -> value.toInt()
             value is BigInteger && type.javaObjectType == Long::class.javaObjectType -> value.toLong()
+			value is Blob -> JDBCBinaryObject(value.getBytes(1, value.length().toInt()))
 			type.javaObjectType.isInstance(value) -> value
             else -> error("Cannot convert value of type `${value.javaClass}` to type `$type`")
         }
