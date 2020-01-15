@@ -43,3 +43,15 @@ open class ColumnDefinition<out V>(final override val compound: TableDefinition,
 class ReferenceColumn<out V>(compound: TableDefinition, name: Identifier, val reference: Column<V>) : ColumnDefinition<V>(compound, name, ReferenceColumnType(reference.type)) {
     override fun toString(): String = "&$reference"
 }
+
+
+/*
+ * Column Conversion Functions
+ */
+
+/**
+ * Converts this Int ColumnDefinition to a Long ColumnDefinition. This is
+ * useful for comparing columns of different numeric types when valid.
+ */
+fun ColumnDefinition<Int?>.asLong() = ColumnDefinition<Long?>(this.compound, this.name.identifier, this.type)
+
