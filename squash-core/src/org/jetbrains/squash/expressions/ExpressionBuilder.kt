@@ -44,6 +44,8 @@ infix operator fun <V> Expression<@Exact V>.div(literal: V): Expression<V> = Div
 infix fun <V> List<V>.contains(value: Expression<V>): InExpression<V> = InExpression(value, this)
 infix fun <V> Expression<V>.within(values: Collection<V>): InExpression<V> = InExpression(this, values)
 
+fun Expression<*>.isNull() = IsNullExpression(this)
+fun Expression<*>.isNotNull() = IsNullExpression(this, true)
 fun <V> literal(value: V) = LiteralExpression(value)
 fun <V> subquery(body: QueryBuilder.() -> Unit) = SubQueryExpression<V>(QueryStatement().apply(body))
 infix fun Expression<String?>.like(literal: String): Expression<Boolean> = LikeExpression(this, LiteralExpression(literal))

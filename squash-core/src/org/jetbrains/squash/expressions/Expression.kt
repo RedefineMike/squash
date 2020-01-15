@@ -26,6 +26,7 @@ class MultiplyExpression<out V>(left: Expression<V>, right: Expression<V>) : Bin
 class DivideExpression<out V>(left: Expression<V>, right: Expression<V>) : BinaryExpression<V, V, V>(left, right)
 
 class LiteralExpression<out V>(val literal: V) : Expression<V>
+class IsNullExpression(val operand:Expression<*>, val notNull:Boolean = false) : Expression<Boolean>
 class SubQueryExpression<out V>(val query: Query) : Expression<V>
 
 class LikeExpression(left: Expression<String?>, right: LiteralExpression<String>) : BinaryExpression<String?, String, Boolean>(left, right)

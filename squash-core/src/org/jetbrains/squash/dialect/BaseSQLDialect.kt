@@ -93,6 +93,14 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
             is FunctionExpression -> {
                 appendFunctionExpression(this, expression)
             }
+			is IsNullExpression -> {
+				appendExpression(this, expression.operand)
+				if (expression.notNull) {
+					append(" IS NOT NULL")
+				} else {
+					append(" IS NULL")
+				}
+			}
 			is CaseExpression<*> -> {
 				appendCaseExpression(this, expression)
 			}

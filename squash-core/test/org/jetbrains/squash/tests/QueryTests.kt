@@ -299,7 +299,7 @@ abstract class QueryTests : DatabaseTests {
             assertEquals("Foo", rows[0][Names.name])
         }
     }
-
+	
     @Test fun queryObject() {
         withCities {
             val query = query(Inhabitants)
@@ -546,4 +546,28 @@ abstract class QueryTests : DatabaseTests {
             assertEquals(listOf("Alex", "Andrey", "Eugene", "Sergey", "Something"), rows)
         }
     }
+	
+	@Test fun selectFromWhereIsNull() {
+		withCities {
+			val query = from(Citizens)
+					.select(Citizens.name)
+					.where(Citizens.name.isNull())
+
+			connection.dialect.statementSQL(query).assertSQL {
+				"SELECT Citizens.name FROM Citizens WHERE Citizens.name IS NULL"
+			}
+		}
+	}
+
+	@Test fun selectFromWhereIsNotNull() {
+		withCities {
+			val query = from(Citizens)
+					.select(Citizens.name)
+					.where(Citizens.name.isNotNull())
+
+			connection.dialect.statementSQL(query).assertSQL {
+				"SELECT Citizens.name FROM Citizens WHERE Citizens.name IS NOT NULL"
+			}
+		}
+	}
 }
