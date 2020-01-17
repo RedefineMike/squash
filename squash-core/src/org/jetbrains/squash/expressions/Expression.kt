@@ -1,6 +1,7 @@
 package org.jetbrains.squash.expressions
 
-import org.jetbrains.squash.query.*
+import org.jetbrains.squash.query.CompoundElement
+import org.jetbrains.squash.query.Query
 
 /**
  * Represents an abstract expression of type [R] representable in an SQL request
@@ -31,6 +32,6 @@ class SubQueryExpression<out V>(val query: Query) : Expression<V>
 
 class LikeExpression(left: Expression<String?>, right: LiteralExpression<String>) : BinaryExpression<String?, String, Boolean>(left, right)
 class InExpression<out V>(val value: Expression<V>, val values: Collection<V>) : Expression<Boolean>
-class InSubQueryExpression<out V>(val operand: Expression<V>, val subquery: SubQueryExpression<V>) : Expression<Boolean>
+class InSubQueryExpression<out V>(left: Expression<V>, right: SubQueryExpression<V>) : BinaryExpression<V, V, Boolean>(left, right)
 
 class AllTableColumnsExpression(val element: CompoundElement) : Expression<Unit>

@@ -78,12 +78,6 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
                 }
                 append(")")
             }
-			is InSubQueryExpression<*> -> {
-				appendExpression(this, expression.operand)
-				append(" IN (")
-				appendSelectSQL(this, expression.subquery.query)
-				append(")")
-			}
             is BinaryExpression<*, *, *> -> {
                 appendBinaryExpression(this, expression)
             }
@@ -154,7 +148,8 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
             is MultiplyExpression -> "*"
             is DivideExpression -> "/"
             is LikeExpression -> "LIKE"
-            else -> error("Expression '$expression' is not supported by ${this@BaseSQLDialect}")
+			is InSubQueryExpression -> "IN"
+            else -> error("Expression '$expression' is not supported by $this")
         })
     }
 
