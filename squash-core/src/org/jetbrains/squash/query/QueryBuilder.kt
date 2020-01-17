@@ -92,3 +92,10 @@ fun <Q : QueryBuilder> Q.having(predicate: Expression<Boolean>): Q = apply {
 fun <Q : QueryBuilder> Q.limit(limit: Long, offset: Long = 0L): Q = apply {
     modifiers.add(QueryLimit(limit, offset))
 }
+
+/**
+ * Unions [unionQuery] to the Query.
+ */
+fun <Q : QueryBuilder> Q.union(unionQuery:Query, shouldUnionAll:Boolean = false) {
+	TODO("Implement Union Support")
+}
