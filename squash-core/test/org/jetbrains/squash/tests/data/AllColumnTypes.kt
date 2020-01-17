@@ -34,6 +34,22 @@ object AllColumnTypes : TableDefinition() {
     val uuid = uuid("uuid")
 }
 
+object AllColumnTypesNullable : TableDefinition() {
+	val id = integer("id").autoIncrement().primaryKey()
+	val varchar = varchar("varchar", 42).nullable()
+	val char = char("char").nullable()
+	val enum = enumeration<E>("enum").nullable()
+	val decimal = decimal("decimal", 5, 2).nullable()
+	val long = long("long").nullable()
+	val date = date("date").nullable()
+	val bool = bool("bool")
+	val datetime = datetime("datetime")
+	val text = text("text").nullable()
+	val binary = binary("binary", 128).nullable()
+	val blob = blob("blob").nullable()
+	val uuid = uuid("uuid").nullable()
+}
+
 fun <R> DatabaseTests.withAllColumnTypes(statement:Transaction.() -> R) :R {
 	return withTables(AllColumnTypes) {
 		insertInto(AllColumnTypes).values {
@@ -51,6 +67,30 @@ fun <R> DatabaseTests.withAllColumnTypes(statement:Transaction.() -> R) :R {
 			it[uuid] = UUID.fromString("7cb64fe4-4938-4e88-8d94-17e929d40c99")
 		}.execute()
 		
+		statement()
+	}
+}
+
+fun <R> DatabaseTests.withAllColumnTypesNullable(vararg nullColumn:Column<*>, statement:Transaction.() -> R) :R {
+	
+	val nullColumns = nullColumn.map { it.name }.toSet()
+	
+	return withTables(AllColumnTypes) {
+		insertInto(AllColumnTypes).values {
+			it[varchar] = if (nullColumns.contains(varchar.name)) null else "varchar"
+			it[char] = if (nullColumns.contains(char.name)) null else "c"
+			it[enum] = if (nullColumns.contains(enum.name)) null else E.ONE
+			it[decimal] = if (nullColumns.contains(decimal.name)) null else BigDecimal.ONE
+			it[long] = if (nullColumns.contains(long.name)) null else 222L
+			it[date] = if (nullColumns.contains(date.name)) null else LocalDate.of(1976, 11, 24)
+			it[bool] = if (nullColumns.contains(bool.name)) null else true
+			it[datetime] = if (nullColumns.contains(datetime.name)) null else LocalDateTime.of(LocalDate.of(1976, 11, 24), LocalTime.of(8, 22))
+			it[text] = if (nullColumns.contains(text.name)) null else "Lorem Ipsum"
+			it[binary] = if (nullColumns.contains(binary.name)) null else byteArrayOf(1, 2, 3)
+			it[blob] = if (nullColumns.contains(blob.name)) null else BinaryObject.fromByteArray(this@withTables, byteArrayOf(1, 2, 3))
+			it[uuid] = if (nullColumns.contains(uuid.name)) null else UUID.fromString("7cb64fe4-4938-4e88-8d94-17e929d40c99")
+		}.execute()
+
 		statement()
 	}
 }

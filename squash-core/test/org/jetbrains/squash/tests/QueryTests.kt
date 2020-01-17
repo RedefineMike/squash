@@ -205,7 +205,16 @@ abstract class QueryTests : DatabaseTests {
 		}
 	}
 
-    @Test fun selectFromJoin() {
+	@Test fun selectFromWhereLikeNullable() {
+		withAllColumnTypesNullable {
+			select(AllColumnTypesNullable.varchar).from(AllColumnTypesNullable)
+				.where {
+					AllColumnTypesNullable.varchar.like("var%")
+				}
+		}
+	}
+
+	@Test fun selectFromJoin() {
         withTables {
             val query = from(Citizens)
                     .innerJoin(Cities) { Cities.id eq Citizens.cityId }
