@@ -78,6 +78,12 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
                 }
                 append(")")
             }
+			is InSubQueryExpression<*> -> {
+				appendExpression(this, expression.operand)
+				append(" IN (")
+				appendSelectSQL(this, expression.subquery.query)
+				append(")")
+			}
             is BinaryExpression<*, *, *> -> {
                 appendBinaryExpression(this, expression)
             }

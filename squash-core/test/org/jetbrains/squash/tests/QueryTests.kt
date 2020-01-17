@@ -148,13 +148,33 @@ abstract class QueryTests : DatabaseTests {
         withTables {
             val eugene = literal("eugene")
             val query = select(Citizens.name).from(Citizens)
-                    .where { Citizens.id eq subquery<String> { from(Citizens).select { Citizens.id }.where { Citizens.id eq eugene } } }
+                    .where { 
+						Citizens.id eq subquery<String> { 
+							from(Citizens).select { Citizens.id }.where { Citizens.id eq eugene } 
+						}
+					}
 
             connection.dialect.statementSQL(query).assertSQL {
                 "SELECT Citizens.name FROM Citizens WHERE Citizens.id = (SELECT Citizens.id FROM Citizens WHERE Citizens.id = ?)"
             }
         }
     }
+
+	@Test fun selectFromWhereInSubQuery() {
+		withTables {
+			val eugene = literal("eugene")
+			val query = select(Citizens.name).from(Citizens)
+					.where { 
+						Citizens.id within subquery { 
+							from(Citizens).select { Citizens.id }.where { Citizens.id neq eugene } 
+						}
+					}
+
+			connection.dialect.statementSQL(query).assertSQL {
+				"SELECT Citizens.name FROM Citizens WHERE Citizens.id IN (SELECT Citizens.id FROM Citizens WHERE Citizens.id <> ?)"
+			}
+		}
+	}
 
     @Test fun selectFromWhereWhere() {
         withTables {

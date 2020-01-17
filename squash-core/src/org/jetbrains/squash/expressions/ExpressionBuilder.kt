@@ -43,6 +43,8 @@ infix operator fun <V> Expression<@Exact V>.div(literal: V): Expression<V> = Div
 
 infix fun <V> List<V>.contains(value: Expression<V>): InExpression<V> = InExpression(value, this)
 infix fun <V> Expression<V>.within(values: Collection<V>): InExpression<V> = InExpression(this, values)
+infix fun <V> Expression<V>.within(subquery: SubQueryExpression<V>): InSubQueryExpression<V> = InSubQueryExpression(this, subquery)
+
 
 fun Expression<*>.isNull() = IsNullExpression(this)
 fun Expression<*>.isNotNull() = IsNullExpression(this, true)
