@@ -4,8 +4,16 @@ import org.jetbrains.squash.query.*
 import org.jetbrains.squash.statements.*
 import kotlin.internal.*
 
-infix fun Expression<Boolean>.and(other: Expression<Boolean>): Expression<Boolean> = AndExpression(this, other)
-infix fun Expression<Boolean>.or(other: Expression<Boolean>): Expression<Boolean> = OrExpression(this, other)
+infix fun Expression<Boolean>.and(other: Expression<Boolean>): Expression<Boolean> = AndOrExpression(this, other, false).apply { 
+	if (other is AndOrExpression) {
+		other.isNestedBinaryExpression = true
+	}
+}
+infix fun Expression<Boolean>.or(other: Expression<Boolean>): Expression<Boolean> = AndOrExpression(this, other, true).apply {
+	if (other is AndOrExpression) {
+		other.isNestedBinaryExpression = true
+	}
+}
 
 @JvmName("postfixNot")
 fun Expression<Boolean>.not(): Expression<Boolean> = NotExpression(this)

@@ -125,11 +125,34 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
                 else -> error("NULL can only be used in equality operations, but an expression was ${expression.javaClass.simpleName}")
             }
         } else {
-            appendExpression(this, expression.left)
-            append(" ")
-            appendBinaryOperator(this, expression)
-            append(" ")
-            appendExpression(this, expression.right)
+			when (expression) {
+				is AndOrExpression -> {
+					if (expression.left is AndOrExpression && expression.left.isNestedBinaryExpression) {
+						append("( ")
+						appendExpression(this, expression.left)
+						append(" )")
+					} else {
+						appendExpression(this, expression.left)
+					}
+					append(" ")
+					appendBinaryOperator(this, expression)
+					append(" ")
+					if (expression.right is AndOrExpression && expression.right.isNestedBinaryExpression) {
+						append("(")
+						appendExpression(this, expression.right)
+						append(")")
+					} else {
+						appendExpression(this, expression.right)
+					}
+				}
+				else -> {
+					appendExpression(this, expression.left)
+					append(" ")
+					appendBinaryOperator(this, expression)
+					append(" ")
+					appendExpression(this, expression.right)
+				}
+			}
         }
     }
 
@@ -141,8 +164,7 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
             is GreaterExpression<*> -> ">"
             is LessEqExpression<*> -> "<="
             is GreaterEqExpression<*> -> ">="
-            is AndExpression -> "AND"
-            is OrExpression -> "OR"
+            is AndOrExpression -> if (expression.isOrExpression) "OR" else "AND"
             is PlusExpression -> "+"
             is MinusExpression -> "-"
             is MultiplyExpression -> "*"

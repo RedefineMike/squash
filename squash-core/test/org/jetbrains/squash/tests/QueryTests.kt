@@ -214,6 +214,26 @@ abstract class QueryTests : DatabaseTests {
 		}
 	}
 
+	@Test fun selectFromWhereComplex() {
+		withTables {
+			val eugene = literal("eugene")
+			val query = select(Citizens.name).from(Citizens)
+					.where {
+						(Citizens.id eq eugene)
+						.or(
+							Citizens.id.neq(eugene)
+								.and(Citizens.id.like("e%"))
+								.and(Citizens.id.like("%e"))
+						)
+					}
+					.where { Citizens.cityId eq 1 }
+
+			connection.dialect.statementSQL(query).assertSQL {
+				"SELECT Citizens.name FROM Citizens WHERE Citizens.id = ? OR (Citizens.id <> ? AND Citizens.id LIKE ? AND Citizens.id LIKE ?) AND Citizens.city_id = ?"
+			}
+		}
+	}
+	
 	@Test fun selectFromJoin() {
         withTables {
             val query = from(Citizens)

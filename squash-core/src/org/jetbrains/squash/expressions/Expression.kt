@@ -17,8 +17,7 @@ class LessEqExpression<out V>(left: Expression<V>, right: Expression<V>) : Binar
 class GreaterExpression<out V>(left: Expression<V>, right: Expression<V>) : BinaryExpression<V, V, Boolean>(left, right)
 class GreaterEqExpression<out V>(left: Expression<V>, right: Expression<V>) : BinaryExpression<V, V, Boolean>(left, right)
 
-class AndExpression(left: Expression<Boolean>, right: Expression<Boolean>) : BinaryExpression<Boolean, Boolean, Boolean>(left, right)
-class OrExpression(left: Expression<Boolean>, right: Expression<Boolean>) : BinaryExpression<Boolean, Boolean, Boolean>(left, right)
+class AndOrExpression(left: Expression<Boolean>, right: Expression<Boolean>, val isOrExpression:Boolean, var isNestedBinaryExpression:Boolean = false) : BinaryExpression<Boolean, Boolean, Boolean>(left, right)
 class NotExpression(val operand: Expression<Boolean>) : Expression<Boolean>
 
 class PlusExpression<out V>(left: Expression<V>, right: Expression<V>) : BinaryExpression<V, V, V>(left, right)
