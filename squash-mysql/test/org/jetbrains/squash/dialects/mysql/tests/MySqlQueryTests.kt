@@ -128,4 +128,25 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 		val result = query.execute().single().get<String>("peopleNames")
 		assertEquals("Eugene;Sergey", result, "Group Concat column `peopleNames` are not as expected.")
 	}
+	
+	@Test
+	fun mysqlHexFunctions() = withAllColumnTypes {
+		val testValue = "TeStVaLuE"
+		
+		val queryHex = select(hex(testValue).alias("hexValue"))
+		connection.dialect.statementSQL(queryHex).assertSQL {
+			"SELECT HEX(?) AS hexValue"
+		}
+
+		val hexValue = queryHex.execute().single().get<String>("hexValue")
+		assertEquals("5465537456614C7545", hexValue)
+
+		val queryUnhex = select(unhex(hexValue).alias("stringValue"))
+		connection.dialect.statementSQL(queryUnhex).assertSQL {
+			"SELECT UNHEX(?) AS stringValue"
+		}
+
+		val stringValue = queryUnhex.execute().single().get<String>("stringValue")
+		assertEquals(testValue, stringValue)
+	}
 }
