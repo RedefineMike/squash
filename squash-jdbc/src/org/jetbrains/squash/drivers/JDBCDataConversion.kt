@@ -1,11 +1,13 @@
 package org.jetbrains.squash.drivers
 
-import org.jetbrains.squash.connection.*
+import org.jetbrains.squash.connection.BinaryObject
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.sql.*
-import java.time.*
-import kotlin.reflect.*
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import kotlin.reflect.KClass
 
 open class JDBCDataConversion {
     open fun convertValueToDatabase(value: Any?): Any? {
@@ -30,7 +32,11 @@ open class JDBCDataConversion {
             value is Date -> value.toLocalDate()
             value is Time -> value.toLocalTime()
 			value is Boolean && type.javaObjectType == Int::class.javaObjectType -> if (value) 1 else 0
-            value is ByteArray && type == BinaryObject::class -> JDBCBinaryObject(value)
+            value is ByteArray -> when (type.javaObjectType) {
+				BinaryObject::class.java -> JDBCBinaryObject(value)
+				String::class.java -> String(value)
+				else -> error("Cannot convert value of ByteArray (binary) type ${type.javaObjectType.name} to type `$type`")
+			}
 			value is Double && type.javaObjectType == BigDecimal::class.java -> value.toBigDecimal()
 			value is Int && type.javaObjectType == BigInteger::class.java -> value.toBigInteger()
 			value is Int && type.javaObjectType == BigDecimal::class.java -> value.toBigDecimal()
