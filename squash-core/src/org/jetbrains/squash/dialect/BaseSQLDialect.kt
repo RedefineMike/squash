@@ -345,15 +345,29 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
                         builder.append(" RIGHT OUTER JOIN ")
                         join.condition
                     }
-                    is QueryCompound.From -> error("From clauses should have been filtered out")
+                    else -> error("${join::class.simpleName} clauses should have been filtered out")
                 }
                 appendCompoundElementSQL(builder, join.element)
                 builder.append(" ON ")
                 appendExpression(builder, condition)
             }
         }
+		
     }
 
+	/**
+	 * Appends SQL for UNION clauses.
+	 */
+	open fun appendUnionSQL(builder: SQLStatementBuilder, query: Query) {
+		if (query.unions.isEmpty())
+			return
+
+		for (union in query.unions) {
+			builder.append(" UNION ${union.type.name} ")
+			appendSelectSQL(builder, union.query)
+		}
+	}
+	
     open fun appendQuerySQL(builder: SQLStatementBuilder, query: Query): Unit = with(builder) {
         appendCompoundSQL(builder, query)
         appendFilterSQL(builder, query)
@@ -361,6 +375,7 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         appendHavingSQL(builder, query)
         appendOrderSQL(builder, query)
         appendModifiersSQL(builder, query)
+		appendUnionSQL(builder, query)
     }
 
     override fun appendCompoundElementSQL(builder: SQLStatementBuilder, element: CompoundElement): Unit = with(builder) {

@@ -14,6 +14,7 @@ open class QueryBuilder : Query {
     override val grouping = mutableListOf<Expression<*>>()
     override val having = mutableListOf<Expression<Boolean>>()
     override val modifiers = mutableListOf<QueryModifier>()
+	override val unions = mutableListOf<QueryUnion>()
 }
 
 fun QueryStatement.copy(): QueryStatement = QueryStatement().apply {
@@ -96,6 +97,14 @@ fun <Q : QueryBuilder> Q.limit(limit: Long, offset: Long = 0L): Q = apply {
 /**
  * Unions [unionQuery] to the Query.
  */
-fun <Q : QueryBuilder> Q.union(unionQuery:Query, shouldUnionAll:Boolean = false) {
-	TODO("Implement Union Support")
+fun <Q : QueryBuilder> Q.union(unionQuery:Query, type:UnionType = UnionType.DISTINCT): Q = this.apply {
+	this.unions.add(QueryUnion(
+		type,
+		unionQuery
+	))
 }
+
+/**
+ * Unions [unionQuery] to the Query using UNION ALL (duplicate rows are not removed).
+ */
+fun <Q : QueryBuilder> Q.unionAll(unionQuery:Query): Q = this.union(unionQuery, UnionType.ALL)

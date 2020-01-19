@@ -10,4 +10,5 @@ interface Query {
     val grouping: List<Expression<*>>
     val having: List<Expression<Boolean>>
     val modifiers : List<QueryModifier>
+	val unions:List<QueryUnion>
 }

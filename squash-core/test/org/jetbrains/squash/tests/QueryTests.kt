@@ -599,4 +599,21 @@ abstract class QueryTests : DatabaseTests {
 			}
 		}
 	}
+	
+	@Test fun selectUnion() {
+		withCities {
+			val eugene = literal("eugene")
+			
+			val query = 
+				select(Citizens.name, Citizens.id).from(Citizens).where { Citizens.id eq eugene }
+				.union(
+					select(Citizens.name, Citizens.id).from(Citizens).where { Citizens.id neq eugene }
+				)
+
+			connection.dialect.statementSQL(query).assertSQL {
+				"SELECT Citizens.name, Citizens.id FROM Citizens WHERE Citizens.id = ? UNION DISTINCT SELECT Citizens.name, Citizens.id FROM Citizens WHERE Citizens.id <> ?"
+			}
+			
+		}
+	}
 }
