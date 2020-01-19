@@ -28,6 +28,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         return id[0].isIdentifierStart() && id.all { it.isIdentifierStart() || it in '0'..'9' }
     }
 
+	/**
+	 * Appends the SQL for a single literal value, such as a query parameter or NULL.
+	 */
     override fun appendLiteralSQL(builder: SQLStatementBuilder, value: Any?) {
         if (value != null)
             builder.append("?")
@@ -37,6 +40,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         }
     }
 
+	/**
+	 * Appends the SQL for a single "declaration" expression, meaning each element in a select statement (columnName, tablename.*, columnName AS aliasname, ...). 
+	 */
     open fun <T> appendDeclarationExpression(builder: SQLStatementBuilder, expression: Expression<T>): Unit = with(builder) {
         when (expression) {
             is AllTableColumnsExpression -> {
@@ -61,6 +67,10 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         }
     }
 
+	/**
+	 * Appends the SQL for any single [Expression]. This method is used generally for all expressions
+	 * and often delegates the SQL generation to other methods, such as [appendBinaryExpression] or [appendFunctionExpression].
+	 */
     override fun <T> appendExpression(builder: SQLStatementBuilder, expression: Expression<T>): Unit = with(builder) {
         when (expression) {
             is LiteralExpression -> appendLiteralSQL(this, expression.literal)
@@ -111,6 +121,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         }
     }
 
+	/**
+	 * Appends the SQL for a single [BinaryExpression] (left, operator, right) element.
+	 */
     open fun appendBinaryExpression(builder: SQLStatementBuilder, expression: BinaryExpression<*, *, *>) = with(builder) {
         if (expression.right is LiteralExpression && expression.right.literal == null) {
             when (expression) {
@@ -156,6 +169,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         }
     }
 
+	/**
+	 * Appends the appropriate operator (+, - , =, LIKE, IN, ...) for any [BinaryExpression] SQL.
+	 */
     open fun appendBinaryOperator(builder: SQLStatementBuilder, expression: BinaryExpression<*, *, *>) = with(builder) {
         append(when (expression) {
             is EqExpression<*> -> "="
@@ -175,6 +191,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         })
     }
 
+	/**
+	 * Appends SQL for a CASE statement, as defined by SQL-92 standard.
+	 */
 	open fun <T> appendCaseExpression(builder: SQLStatementBuilder, expression: CaseExpression<T>) = with(builder) {
 		if (expression.target == null) {
 			append("CASE")	
@@ -198,7 +217,10 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
 		
 		append(" END")
 	}
-	
+
+	/**
+	 * Appends SQL for any function expression, such as COUNT(column), or any [GeneralFunctionExpression]
+	 */
     open fun <T> appendFunctionExpression(builder: SQLStatementBuilder, expression: FunctionExpression<T>) = with(builder) {
         when (expression) {
             is CountExpression -> {
@@ -247,6 +269,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         }
     }
 
+	/**
+	 * Appends SQL for the SELECT clause.
+	 */
     open fun appendSelectSQL(builder: SQLStatementBuilder, query: Query) {
         builder.append("SELECT ")
         if (query.selection.isEmpty()) {
@@ -260,6 +285,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         appendQuerySQL(builder, query)
     }
 
+	/**
+	 * Appends SQL for the ORDER BY clause.
+	 */
     open fun appendOrderSQL(builder: SQLStatementBuilder, query: Query) {
         if (query.order.isEmpty())
             return
@@ -271,6 +299,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         }
     }
 
+	/**
+	 * Appends the SQL for all "modifiers", such as LIMIT / OFFSET.
+	 */
     open fun appendModifiersSQL(builder: SQLStatementBuilder, query: Query) {
         if (query.modifiers.isEmpty())
             return
@@ -279,6 +310,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         }
     }
 
+	/**
+	 * Appends SQL for a single modifier statement, such as LIMIT / OFFSET.
+	 */
     open fun appendModifierSQL(builder: SQLStatementBuilder, modifier: QueryModifier) {
         when (modifier) {
             is QueryLimit -> {
@@ -293,6 +327,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         }
     }
 
+	/**
+	 * Appends SQL for the GROUP BY clause.
+	 */
     open fun appendGroupingSQL(builder: SQLStatementBuilder, query: Query) {
         if (query.grouping.isEmpty())
             return
@@ -304,6 +341,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         }
     }
 
+	/**
+	 * Appends SQL for the HAVING clause.
+	 */
     open fun appendHavingSQL(builder: SQLStatementBuilder, query: Query) {
         if (query.having.isEmpty())
             return
@@ -315,6 +355,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         }
     }
 
+	/**
+	 * Appends SQL for a single element of the ORDER BY clause.
+	 */
     open fun appendOrderExpression(builder: SQLStatementBuilder, order: QueryOrder) {
         appendExpression(builder, order.expression)
         when (order) {
@@ -325,6 +368,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         builder.append(" NULLS LAST")
     }
 
+	/**
+	 * Appends SQL for the WHERE clause.
+	 */
     open fun appendFilterSQL(builder: SQLStatementBuilder, query: Query) {
         if (query.filter.isEmpty())
             return
@@ -336,6 +382,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         }
     }
 
+	/**
+	 * Appends SQL for FROM and JOIN clauses.
+	 */
     open fun appendCompoundSQL(builder: SQLStatementBuilder, query: Query) {
         if (query.compound.isEmpty())
             return
