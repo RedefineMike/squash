@@ -111,50 +111,60 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         }
     }
 
-    open fun appendBinaryExpression(builder: SQLStatementBuilder, expression: BinaryExpression<*, *, *>) = with(builder) {
-        if (expression.right is LiteralExpression && expression.right.literal == null) {
-            when (expression) {
-                is EqExpression<*> -> {
-                    appendExpression(this, expression.left)
-                    append(" IS NULL")
-                }
-                is NotEqExpression<*> -> {
-                    appendExpression(this, expression.left)
-                    append(" IS NOT NULL")
-                }
-                else -> error("NULL can only be used in equality operations, but an expression was ${expression.javaClass.simpleName}")
-            }
-        } else {
-			when (expression) {
-				is AndOrExpression -> {
-					if (expression.left is AndOrExpression && expression.left.isNestedBinaryExpression) {
-						append("( ")
+    open fun appendBinaryExpression(builder: SQLStatementBuilder, expression: BinaryExpression<*, *, *>) {
+		with(builder) {
+			if (expression.right is LiteralExpression && expression.right.literal == null) {
+				when (expression) {
+					is EqExpression<*> -> {
 						appendExpression(this, expression.left)
-						append(" )")
-					} else {
+						append(" IS NULL")
+					}
+					is NotEqExpression<*> -> {
 						appendExpression(this, expression.left)
+						append(" IS NOT NULL")
 					}
-					append(" ")
-					appendBinaryOperator(this, expression)
-					append(" ")
-					if (expression.right is AndOrExpression && expression.right.isNestedBinaryExpression) {
-						append("(")
-						appendExpression(this, expression.right)
-						append(")")
-					} else {
-						appendExpression(this, expression.right)
-					}
+					else -> error("NULL can only be used in equality operations, but an expression was ${expression.javaClass.simpleName}")
 				}
-				else -> {
-					appendExpression(this, expression.left)
-					append(" ")
-					appendBinaryOperator(this, expression)
-					append(" ")
-					appendExpression(this, expression.right)
+			} else {
+				when (expression) {
+					is AndOrExpression -> {
+						if (expression.isNestedBinaryExpression) {
+							append("( ")
+						}
+						if (expression.left is AndOrExpression && expression.left.isNestedBinaryExpression) {
+							append("( ")
+							appendExpression(this, expression.left)
+							append(" )")
+						} else {
+							appendExpression(this, expression.left)
+						}
+						append(" ")
+						appendBinaryOperator(this, expression)
+						append(" ")
+						if (expression.right is AndOrExpression && expression.right.isNestedBinaryExpression) {
+							append("( ")
+							appendExpression(this, expression.right)
+							append(" )")
+						} else {
+							appendExpression(this, expression.right)
+						}
+						if (expression.isNestedBinaryExpression) {
+							append(" )")
+						}
+					}
+					else -> {
+						appendExpression(this, expression.left)
+						append(" ")
+						appendBinaryOperator(this, expression)
+						append(" ")
+						appendExpression(this, expression.right)
+					}
 				}
 			}
-        }
-    }
+			
+			null
+		}
+	}
 
     open fun appendBinaryOperator(builder: SQLStatementBuilder, expression: BinaryExpression<*, *, *>) = with(builder) {
         append(when (expression) {

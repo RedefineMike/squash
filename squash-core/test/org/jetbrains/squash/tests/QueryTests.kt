@@ -229,7 +229,21 @@ abstract class QueryTests : DatabaseTests {
 					.where { Citizens.cityId eq 1 }
 
 			connection.dialect.statementSQL(query).assertSQL {
-				"SELECT Citizens.name FROM Citizens WHERE Citizens.id = ? OR (Citizens.id <> ? AND Citizens.id LIKE ? AND Citizens.id LIKE ?) AND Citizens.city_id = ?"
+				"SELECT Citizens.name FROM Citizens WHERE Citizens.id = ? OR ( ( Citizens.id <> ? AND Citizens.id LIKE ? AND Citizens.id LIKE ? ) ) AND Citizens.city_id = ?"
+			}
+		}
+	}
+
+	@Test fun selectFromMultiWhereComplex() {
+		withTables {
+			val eugene = literal("eugene")
+			val query = select(Citizens.name).from(Citizens)
+					.where { Citizens.id eq eugene }
+					.where { Citizens.id.like("e%").or(Citizens.id.like("%e")) }
+					.where { Citizens.cityId eq 1 }
+
+			connection.dialect.statementSQL(query).assertSQL {
+				"SELECT Citizens.name FROM Citizens WHERE Citizens.id = ? AND ( Citizens.id LIKE ? OR Citizens.id LIKE ? ) AND Citizens.city_id = ?"
 			}
 		}
 	}
