@@ -59,7 +59,12 @@ fun <Q : QueryBuilder> Q.from(element: CompoundElement): Q = apply {
  * Adds [predicate] to the Query, filtering result set by only rows matching it
  */
 fun <Q : QueryBuilder> Q.where(predicate: Expression<Boolean>): Q = apply {
-    filter.add(predicate)
+	if (filter.isNotEmpty() && predicate is AndOrExpression) {
+		predicate.isNestedBinaryExpression = true
+	}
+	
+	filter.add(predicate)
+
 }
 
 fun <Q : QueryBuilder> Q.orderBy(expression: Expression<*>, ascending: Boolean = true): Q = apply {
