@@ -33,6 +33,7 @@ open class JDBCDataConversion {
             value is Time -> value.toLocalTime()
 			value is Boolean && type.javaObjectType == Int::class.javaObjectType -> if (value) 1 else 0
             value is ByteArray -> when (type.javaObjectType) {
+				ByteArray::class.java -> value
 				BinaryObject::class.java -> JDBCBinaryObject(value)
 				String::class.java -> String(value)
 				else -> error("Cannot convert value of ByteArray (binary) type ${type.javaObjectType.name} to type `$type`")
