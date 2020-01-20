@@ -3,11 +3,9 @@ package org.jetbrains.squash.dialects.mysql.tests
 import org.jetbrains.squash.dialects.mysql.expressions.*
 import org.jetbrains.squash.expressions.alias
 import org.jetbrains.squash.expressions.eq
+import org.jetbrains.squash.expressions.literal
 import org.jetbrains.squash.query.*
 import org.jetbrains.squash.results.get
-import org.jetbrains.squash.statements.fetch
-import org.jetbrains.squash.statements.insertInto
-import org.jetbrains.squash.statements.values
 import org.jetbrains.squash.tests.DatabaseTests
 import org.jetbrains.squash.tests.QueryTests
 import org.jetbrains.squash.tests.data.*
@@ -148,5 +146,32 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 
 		val stringValue = queryUnhex.execute().single().get<String>("stringValue")
 		assertEquals(testValue, stringValue)
+	}
+	
+	/*
+	 * Control Flow Functions
+	 */
+	@Test
+	fun mysqlIfNullFunction() = this.createTransaction().use { transaction ->
+		val connection = transaction.connection
+
+		val nonNullValue = "NO NULLS HERE"
+		val nullValue:String? = null
+		
+		val queryNullLast = select(ifNull(literal(nonNullValue), literal(nullValue)).alias("testValue"))
+		connection.dialect.statementSQL(queryNullLast).assertSQL {
+			"SELECT IFNULL(?, NULL) AS testValue"
+		}
+
+		val nullLast = queryNullLast.executeOn(transaction).single().get<String>("testValue")
+		assertEquals(nonNullValue, nullLast)
+
+		val queryNullFirst = select(ifNull(literal(nullValue), literal(nonNullValue)).alias("testValue"))
+		connection.dialect.statementSQL(queryNullFirst).assertSQL {
+			"SELECT IFNULL(NULL, ?) AS testValue"
+		}
+
+		val nullFirst = queryNullFirst.executeOn(transaction).single().get<String>("testValue")
+		assertEquals(nonNullValue, nullFirst)
 	}
 }
