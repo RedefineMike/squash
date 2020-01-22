@@ -10,6 +10,7 @@ import org.jetbrains.squash.tests.DatabaseTests
 import org.jetbrains.squash.tests.QueryTests
 import org.jetbrains.squash.tests.data.*
 import org.junit.Test
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -145,6 +146,22 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 
 		val testResult = testQuery.executeOn(transaction).single().get<String>("testResult")
 		assertEquals("Hello World!", testResult)
+	}
+
+	@Test
+	fun formatFunction() = createTransaction().use { transaction ->
+		val connection = transaction.connection
+
+		val testQuery = select(
+				format(literal(BigDecimal.valueOf(1234.56789))).alias("testResult")
+		)
+
+		connection.dialect.statementSQL(testQuery).assertSQL {
+			"SELECT FORMAT(?, ?) AS testResult"
+		}
+
+		val testResult = testQuery.executeOn(transaction).single().get<String>("testResult")
+		assertEquals("1,234.57", testResult)
 	}
 	
 	@Test
