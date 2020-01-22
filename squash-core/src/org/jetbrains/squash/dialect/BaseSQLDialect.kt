@@ -446,9 +446,9 @@ open class BaseSQLDialect(val name: String) : SQLDialect {
         appendFilterSQL(builder, query)
         appendGroupingSQL(builder, query)
         appendHavingSQL(builder, query)
-        appendOrderSQL(builder, query)
-        appendModifiersSQL(builder, query)
 		appendUnionSQL(builder, query)
+		appendOrderSQL(builder, query)
+        appendModifiersSQL(builder, query)
     }
 
     override fun appendCompoundElementSQL(builder: SQLStatementBuilder, element: CompoundElement): Unit = with(builder) {
