@@ -130,7 +130,8 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 	}
 	
 	@Test
-	fun mysqlHexFunctions() = withAllColumnTypes {
+	fun mysqlHexFunctions() = createTransaction().use { transaction ->
+		val connection = transaction.connection
 		val testValue = "TeStVaLuE"
 		
 		val queryHex = select(hex(testValue).alias("hexValue"))
@@ -138,7 +139,7 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 			"SELECT HEX(?) AS hexValue"
 		}
 
-		val hexValue = queryHex.execute().single().get<String>("hexValue")
+		val hexValue = queryHex.executeOn(transaction).single().get<String>("hexValue")
 		assertEquals("5465537456614C7545", hexValue)
 
 		val queryUnhex = select(unhex(hexValue).alias("stringValue"))
@@ -146,7 +147,7 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 			"SELECT UNHEX(?) AS stringValue"
 		}
 
-		val stringValue = queryUnhex.execute().single().get<String>("stringValue")
+		val stringValue = queryUnhex.executeOn(transaction).single().get<String>("stringValue")
 		assertEquals(testValue, stringValue)
 	}
 }
