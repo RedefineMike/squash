@@ -630,7 +630,7 @@ abstract class QueryTests : DatabaseTests {
 					.limit(20)
 
 			connection.dialect.statementSQL(query).assertSQL {
-				"SELECT Citizens.name, Citizens.id FROM Citizens WHERE Citizens.id = ? UNION DISTINCT SELECT Citizens.name, Citizens.id FROM Citizens WHERE Citizens.id <> ? ORDER BY Citizens.name NULLS LAST LIMIT ?"
+				"SELECT Citizens.name, Citizens.id FROM Citizens WHERE Citizens.id = ? UNION DISTINCT SELECT Citizens.name, Citizens.id FROM Citizens WHERE Citizens.id <> ? ORDER BY ${nullsLast("Citizens.name")} LIMIT ?"
 			}
 
 		}
