@@ -127,6 +127,26 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 		assertEquals("Eugene;Sergey", result, "Group Concat column `peopleNames` are not as expected.")
 	}
 	
+	/*
+	 * String Functions
+	 */
+
+	@Test
+	fun concatFunction() = createTransaction().use { transaction ->
+		val connection = transaction.connection
+		
+		val testQuery = select(
+			concat(literal("Hello"), literal(" "), literal("World!")).alias("testResult")
+		)
+
+		connection.dialect.statementSQL(testQuery).assertSQL {
+			"SELECT CONCAT(?, ?, ?) AS testResult"
+		}
+
+		val testResult = testQuery.executeOn(transaction).single().get<String>("testResult")
+		assertEquals("Hello World!", testResult)
+	}
+	
 	@Test
 	fun mysqlHexFunctions() = createTransaction().use { transaction ->
 		val connection = transaction.connection
@@ -175,4 +195,5 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 		val nullFirst = queryNullFirst.executeOn(transaction).single().get<String>("testValue")
 		assertEquals(nonNullValue, nullFirst)
 	}
+	
 }

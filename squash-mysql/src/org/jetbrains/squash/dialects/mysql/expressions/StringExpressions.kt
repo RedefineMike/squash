@@ -1,6 +1,13 @@
 package org.jetbrains.squash.dialects.mysql.expressions
 
+import org.jetbrains.squash.expressions.Expression
 import org.jetbrains.squash.expressions.GeneralFunctionExpression
+
+/**
+ * Returns the string that results from concatenating the arguments. May have one or more arguments. If all arguments are nonbinary strings, the result is a nonbinary string. If the arguments include any binary strings, the result is a binary string. A numeric argument is converted to its equivalent nonbinary string form.
+ * See : https://dev.mysql.com/doc/refman/5.7/en/string-functions.html#function_concat
+ */
+fun concat(vararg expressions:Expression<String?>) = GeneralFunctionExpression<String?>("CONCAT", expressions.toList())
 
 /**
  *  For a string argument str, HEX() returns a hexadecimal string representation of str where each byte of each character in str is converted to two hexadecimal digits. (Multibyte characters therefore become more than two digits.) The inverse of this operation is performed by the UNHEX() function.
