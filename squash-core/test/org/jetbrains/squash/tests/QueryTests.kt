@@ -616,4 +616,23 @@ abstract class QueryTests : DatabaseTests {
 			
 		}
 	}
+
+	@Test fun selectUnionWithOrderBy() {
+		withCities {
+			val eugene = literal("eugene")
+
+			val query =
+					select(Citizens.name, Citizens.id).from(Citizens).where { Citizens.id eq eugene }
+					.union(
+						select(Citizens.name, Citizens.id).from(Citizens).where { Citizens.id neq eugene }
+					)
+					.orderBy(Citizens.name)
+					.limit(20)
+
+			connection.dialect.statementSQL(query).assertSQL {
+				"SELECT Citizens.name, Citizens.id FROM Citizens WHERE Citizens.id = ? UNION DISTINCT SELECT Citizens.name, Citizens.id FROM Citizens WHERE Citizens.id <> ? ORDER BY Citizens.name NULLS LAST LIMIT ?"
+			}
+
+		}
+	}
 }
