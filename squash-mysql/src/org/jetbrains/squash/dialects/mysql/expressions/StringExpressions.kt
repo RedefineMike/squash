@@ -5,6 +5,7 @@ import org.jetbrains.squash.expressions.GeneralFunctionExpression
 
 /**
  * Returns the string that results from concatenating the arguments. May have one or more arguments. If all arguments are nonbinary strings, the result is a nonbinary string. If the arguments include any binary strings, the result is a binary string. A numeric argument is converted to its equivalent nonbinary string form.
+ * [concat] returns NULL if any argument is NULL.
  * See : https://dev.mysql.com/doc/refman/5.7/en/string-functions.html#function_concat
  */
 fun concat(vararg expressions:Expression<String?>) = GeneralFunctionExpression<String?>("CONCAT", expressions.toList())
