@@ -24,6 +24,7 @@ fun QueryStatement.copy(): QueryStatement = QueryStatement().apply {
     order.addAll(this@copy.order)
     grouping.addAll(this@copy.grouping)
     having.addAll(this@copy.having)
+	unions.addAll(this@copy.unions)
 }
 
 /**
