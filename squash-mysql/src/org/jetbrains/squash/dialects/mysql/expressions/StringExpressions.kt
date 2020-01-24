@@ -16,7 +16,7 @@ fun concat(vararg expressions:Expression<String?>) = GeneralFunctionExpression<S
  *  The optional third parameter enables a locale to be specified to be used for the result number's decimal point, thousands separator, and grouping between separators. Permissible locale values are the same as the legal values for the lc_time_names system variable (see Section 10.16, “MySQL Server Locale Support”). If no locale is specified, the default is 'en_US'.
  *  See : [MySQL : Format Function](https://dev.mysql.com/doc/refman/5.7/en/string-functions.html#function_format)
  */
-fun format(expression:Expression<BigDecimal>, decimalPlaces:Int = 2, locale:String? = null) = locale?.let {
+fun format(expression:Expression<BigDecimal?>, decimalPlaces:Int = 2, locale:String? = null) = locale?.let {
 	GeneralFunctionExpression<String?>("FORMAT", listOf(expression, decimalPlaces, locale))
 } ?: GeneralFunctionExpression<String?>("FORMAT", listOf(expression, decimalPlaces))
 
