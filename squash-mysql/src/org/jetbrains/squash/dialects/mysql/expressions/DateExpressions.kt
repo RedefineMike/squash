@@ -64,7 +64,24 @@ fun Expression<*>.weekDay() = ColumnFunctionExpression<Int>("WEEKDAY", this)
  */
 fun Expression<*>.dayOfYear() = ColumnFunctionExpression<Int>("DAYOFYEAR", this)
 
+/**
+ * Truncate a date to the given date part.
+ */
+fun Expression<LocalDateTime>.truncateTo(timeUnit:ChronoUnit, offset:Int = 0) = DateTruncateExpression(MysqlTimeInterval.of(this, timeUnit, offset))
 
+class DateTruncateExpression(
+	private val interval:MysqlTimeIntervalExpression
+) : DialectExtension, Expression<LocalDateTime> {
+	
+	override fun appendTo(builder: SQLStatementBuilder, dialect: SQLDialect) {
+		builder.append("(DATE(")
+		dialect.appendExpression(builder, interval.value)
+		builder.append(") + ")
+		interval.appendTo(builder, dialect)
+		builder.append(")")
+	}
+
+}
 
 /*
  * Date Math
