@@ -1,16 +1,21 @@
 package org.jetbrains.squash.dialects.mysql.tests
 
-import com.wix.mysql.*
-import com.wix.mysql.EmbeddedMysql.*
-import com.wix.mysql.config.*
-import com.wix.mysql.config.MysqldConfig.*
-import com.wix.mysql.distribution.*
-import org.jetbrains.squash.connection.*
-import org.jetbrains.squash.definition.*
-import org.jetbrains.squash.dialects.mysql.*
-import org.jetbrains.squash.tests.*
+import com.wix.mysql.EmbeddedMysql
+import com.wix.mysql.EmbeddedMysql.anEmbeddedMysql
+import com.wix.mysql.SqlScriptSource
+import com.wix.mysql.config.MysqldConfig
+import com.wix.mysql.config.MysqldConfig.aMysqldConfig
+import com.wix.mysql.distribution.Version
+import org.jetbrains.squash.connection.DatabaseConnection
+import org.jetbrains.squash.definition.ColumnType
+import org.jetbrains.squash.definition.IntColumnType
+import org.jetbrains.squash.definition.LongColumnType
+import org.jetbrains.squash.dialects.mysql.MySqlConnection
+import org.jetbrains.squash.tests.DatabaseTests
+import java.io.File
 import java.util.*
-import kotlin.test.*
+import java.util.zip.GZIPInputStream
+import kotlin.test.fail
 
 //val mariadb = DB.newEmbeddedDB(3306).also { it.start() }
 val config: MysqldConfig = aMysqldConfig(Version.v5_7_latest)
@@ -21,7 +26,9 @@ val config: MysqldConfig = aMysqldConfig(Version.v5_7_latest)
 
 val mysql: EmbeddedMysql = anEmbeddedMysql(config)
         .addSchema("test")
-        .start()
+        .start().apply {
+			executeScripts("mysql", SqlScriptSource { GZIPInputStream(File("./resources/timezone_posix.sql.gz").inputStream()).bufferedReader(Charsets.US_ASCII).use { reader -> reader.readText() } })
+		}
 
 class MySqlDatabaseTests : DatabaseTests {
     override val quote = "`"
