@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import kotlin.test.assertEquals
 
-class MySqlExtendedExpressionTests : DatabaseTests by MySqlDatabaseTests() {
+class MySqlConvenienceExpressionTests : DatabaseTests by MySqlDatabaseTests() {
 
 	@Test
 	fun testDateTruncation() = withAllColumnTypes {
