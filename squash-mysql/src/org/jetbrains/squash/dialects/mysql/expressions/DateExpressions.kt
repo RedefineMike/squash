@@ -1,9 +1,11 @@
 package org.jetbrains.squash.dialects.mysql.expressions
 
-import org.jetbrains.squash.dialects.mysql.expressions.MysqlTimeUnit.Companion.from
+import org.jetbrains.squash.dialect.DialectExtension
+import org.jetbrains.squash.dialect.SQLDialect
+import org.jetbrains.squash.dialect.SQLStatementBuilder
+import org.jetbrains.squash.expressions.ColumnFunctionExpression
 import org.jetbrains.squash.expressions.Expression
 import org.jetbrains.squash.expressions.FunctionExpression
-import org.jetbrains.squash.expressions.ColumnFunctionExpression
 import org.jetbrains.squash.expressions.LiteralExpression
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -17,13 +19,13 @@ fun Expression<*>.date() = ColumnFunctionExpression<LocalDate>("DATE", this)
 /**
  * Subtracts a number of days from a date.
  */
-fun Expression<*>.dateSub(expression:Expression<Number>, timeUnit:ChronoUnit = ChronoUnit.DAYS) = MysqlDateMathFunction("DATE_SUB", this, from(expression, timeUnit))
+fun Expression<*>.dateSub(expression:Expression<Number>, timeUnit:ChronoUnit = ChronoUnit.DAYS) = MysqlDateMathFunction("DATE_SUB", this, MysqlTimeInterval.of(expression, timeUnit))
 fun Expression<*>.dateSub(value:Number, timeUnit:ChronoUnit = ChronoUnit.DAYS) = dateSub(LiteralExpression(value), timeUnit)
 
 /**
  *  Add a time value (using Java [ChronoUnit]) to a date
  */
-fun Expression<*>.dateAdd(expression:Expression<Number>, timeUnit:ChronoUnit = ChronoUnit.DAYS) = MysqlDateMathFunction("DATE_ADD", this, from(expression, timeUnit))
+fun Expression<*>.dateAdd(expression:Expression<Number>, timeUnit:ChronoUnit = ChronoUnit.DAYS) = MysqlDateMathFunction("DATE_ADD", this, MysqlTimeInterval.of(expression, timeUnit))
 fun Expression<*>.dateAdd(value:Number, timeUnit:ChronoUnit = ChronoUnit.DAYS) = dateAdd(LiteralExpression(value), timeUnit)
 
 /**
@@ -62,33 +64,58 @@ fun Expression<*>.weekDay() = ColumnFunctionExpression<Int>("WEEKDAY", this)
  */
 fun Expression<*>.dayOfYear() = ColumnFunctionExpression<Int>("DAYOFYEAR", this)
 
+
+
 /*
  * Date Math
  */
 
-class MysqlDateMathFunction(val name:String, val expression:Expression<*>, val interval: MysqlTimeUnit) : FunctionExpression<LocalDateTime>
+class MysqlDateMathFunction(val name:String, val expression:Expression<*>, val interval:MysqlTimeIntervalStatic) : FunctionExpression<LocalDateTime>
 
-class MysqlTimeUnit(
+/*
+ * Time Intervals
+ */
+
+class MysqlTimeIntervalStatic(
 	val value:Expression<Number>,
 	val unit:String
-) {
-	
-	override fun toString():String = "INTERVAL $value $unit"
-	
-	companion object {
+) : MysqlTimeInterval {
 
+	override fun appendTo(builder: SQLStatementBuilder, dialect: SQLDialect) { builder.append("INTERVAL $value $unit") }
+}
+
+class MysqlTimeIntervalExpression(
+	val value:Expression<LocalDateTime>,
+	val unit:String,
+	val offset:Int = 0
+) : MysqlTimeInterval {
+
+	override fun appendTo(builder: SQLStatementBuilder, dialect: SQLDialect) {
+		builder.append("INTERVAL EXTRACT($unit FROM ")
+		dialect.appendExpression(builder, value)
+		builder.append(")${if (offset != 0) "+ $offset" else ""} $unit")
+	}
+}
+
+interface MysqlTimeInterval : DialectExtension {
+
+	companion object {
 		/**
-		 * Creates a [MysqlTimeUnit] value from a Java [ChronoUnit].
+		 * Creates a [MysqlTimeIntervalStatic] value from a Java [ChronoUnit].
 		 */
-		fun from(value:Expression<Number>, timeUnit:ChronoUnit) = when (timeUnit) {
-			ChronoUnit.MICROS -> MysqlTimeUnit(value, "MICROSECOND")
-			ChronoUnit.SECONDS -> MysqlTimeUnit(value, "SECOND")
-			ChronoUnit.MINUTES -> MysqlTimeUnit(value, "MINUTE")
-			ChronoUnit.HOURS -> MysqlTimeUnit(value, "HOUR")
-			ChronoUnit.DAYS -> MysqlTimeUnit(value, "DAY")
-			ChronoUnit.MONTHS -> MysqlTimeUnit(value, "MONTH")
-			ChronoUnit.YEARS -> MysqlTimeUnit(value, "YEAR")
-			ChronoUnit.WEEKS -> MysqlTimeUnit(value, "WEEK")
+		fun of(value:Expression<Number>, timeUnit:ChronoUnit) = MysqlTimeIntervalStatic(value, chronoUnitToIntervalUnit(timeUnit))
+
+		fun of(value:Expression<LocalDateTime>, timeUnit:ChronoUnit, offset:Int = 0) = MysqlTimeIntervalExpression(value, chronoUnitToIntervalUnit(timeUnit), offset)
+		
+		private fun chronoUnitToIntervalUnit(timeUnit:ChronoUnit) = when (timeUnit) {
+			ChronoUnit.MICROS -> "MICROSECOND"
+			ChronoUnit.SECONDS -> "SECOND"
+			ChronoUnit.MINUTES -> "MINUTE"
+			ChronoUnit.HOURS -> "HOUR"
+			ChronoUnit.DAYS -> "DAY"
+			ChronoUnit.MONTHS -> "MONTH"
+			ChronoUnit.YEARS -> "YEAR"
+			ChronoUnit.WEEKS -> "WEEK"
 			else -> error("ChronoUnit not supported by MySQL intervals.")
 		}
 	}
