@@ -77,22 +77,58 @@ fun Expression<LocalDateTime>.truncateTo(timeUnit:ChronoUnit, toTimezone:ZoneId?
 
 class DateTruncateExpression(
 	expression:Expression<LocalDateTime>,
-	timeUnit:ChronoUnit,
+	val timeUnit:ChronoUnit,
 	val toTimezone:ZoneId? = null,
 	val fromTimezone:ZoneId = ZoneId.of("UTC"),
-	offset:Int = 0
+	val offset:Int = 0
 ) : DialectExtension, Expression<LocalDateTime> {
 	
 	val expression = toTimezone?.let { expression.convertTimeZone(toTimezone, fromTimezone) } ?: expression
 
-	val interval = MysqlTimeInterval.of(this.expression, timeUnit, offset)
-	
 	override fun appendTo(builder: SQLStatementBuilder, dialect: SQLDialect) {
-		builder.append("(DATE(")
-		dialect.appendExpression(builder, expression)
-		builder.append(") + ")
-		interval.appendTo(builder, dialect)
-		builder.append(")")
+		if (timeUnit.duration < ChronoUnit.DAYS.duration) {
+			builder.append("(DATE(")
+			dialect.appendExpression(builder, expression)
+			builder.append(')')
+			when (timeUnit) {
+				ChronoUnit.HOURS -> {
+					builder.append(" + ")
+					MysqlTimeInterval.of(this.expression, timeUnit, offset).appendTo(builder, dialect)
+				}
+				ChronoUnit.MINUTES -> {
+					builder.append(" + ")
+					MysqlTimeInterval.of(this.expression, ChronoUnit.HOURS).appendTo(builder, dialect)
+					builder.append(" + ")
+					MysqlTimeInterval.of(this.expression, timeUnit, offset).appendTo(builder, dialect)
+				}
+				ChronoUnit.SECONDS -> {
+					builder.append(" + ")
+					MysqlTimeInterval.of(this.expression, ChronoUnit.HOURS).appendTo(builder, dialect)
+					builder.append(" + ")
+					MysqlTimeInterval.of(this.expression, ChronoUnit.MINUTES).appendTo(builder, dialect)
+					builder.append(" + ")
+					MysqlTimeInterval.of(this.expression, timeUnit, offset).appendTo(builder, dialect)
+				}
+				else -> error("Squash SQL Error : $timeUnit is not supported by Expression<LocalDateTime>.truncateTo()")
+			}
+			builder.append(")")
+		} else {
+			dialect.appendExpression(builder, when (timeUnit) {
+				ChronoUnit.DAYS -> {
+					expression.date()
+				}
+				ChronoUnit.MONTHS -> {
+					expression.date().dateSub(expression.dayOfMonth().minus(1))
+				}
+				ChronoUnit.WEEKS -> {
+					expression.date().dateSub(expression.dayOfWeek().minus(1))
+				}
+				ChronoUnit.YEARS -> {
+					expression.date().dateSub(expression.dayOfYear().minus(1))
+				}
+				else -> error("Squash SQL Error : $timeUnit is not supported by Expression<LocalDateTime>.truncateTo()")
+			})
+		}
 	}
 
 }
