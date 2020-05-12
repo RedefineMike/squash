@@ -29,7 +29,10 @@ open class JDBCDataConversion {
             value is Int && type.java.superclass == java.lang.Enum::class.java -> type.java.enumConstants[value]
             value is Clob -> value.characterStream.readText()
             value is Timestamp -> value.toLocalDateTime()
-            value is Date -> value.toLocalDate()
+            value is Date -> when (type.javaObjectType) {
+				LocalDateTime::class.java -> value.toLocalDate().atStartOfDay()
+				else -> value.toLocalDate()
+			}
             value is Time -> value.toLocalTime()
 			value is Boolean && type.javaObjectType == Int::class.javaObjectType -> if (value) 1 else 0
             value is ByteArray -> when (type.javaObjectType) {
