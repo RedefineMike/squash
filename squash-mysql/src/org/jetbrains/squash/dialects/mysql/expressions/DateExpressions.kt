@@ -3,12 +3,11 @@ package org.jetbrains.squash.dialects.mysql.expressions
 import org.jetbrains.squash.dialect.DialectExtension
 import org.jetbrains.squash.dialect.SQLDialect
 import org.jetbrains.squash.dialect.SQLStatementBuilder
-import org.jetbrains.squash.expressions.ColumnFunctionExpression
-import org.jetbrains.squash.expressions.Expression
-import org.jetbrains.squash.expressions.FunctionExpression
-import org.jetbrains.squash.expressions.LiteralExpression
+import org.jetbrains.squash.expressions.*
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
 /**
@@ -65,17 +64,32 @@ fun Expression<*>.weekDay() = ColumnFunctionExpression<Int>("WEEKDAY", this)
 fun Expression<*>.dayOfYear() = ColumnFunctionExpression<Int>("DAYOFYEAR", this)
 
 /**
- * Truncate a date to the given date part.
+ * Convert a date to the given timezone. Corresponds to the MySQL convert_tz(date, from_tz, to_tz) function.
+ * Differs from MySQL in that the from timezone is defaulted to UTC.
+ * See : https://dev.mysql.com/doc/refman/en/date-and-time-functions.html#function_convert-tz
  */
-fun Expression<LocalDateTime>.truncateTo(timeUnit:ChronoUnit, offset:Int = 0) = DateTruncateExpression(MysqlTimeInterval.of(this, timeUnit, offset))
+fun Expression<LocalDateTime>.convertTimeZone(toTimezone:ZoneId, fromTimezone:ZoneId = ZoneId.of("UTC")) = GeneralFunctionExpression<LocalDateTime>("convert_tz", listOf(this, literal(fromTimezone.id), literal(toTimezone.id)))
+
+/**
+ * Truncate a date to the given date part. Currently, only supports time units as large as [ChronoUnit.DAYS].
+ */
+fun Expression<LocalDateTime>.truncateTo(timeUnit:ChronoUnit, toTimezone:ZoneId? = null, fromTimezone:ZoneId = ZoneId.of("UTC"), offset:Int = 0) = DateTruncateExpression(this, timeUnit, toTimezone, fromTimezone, offset)
 
 class DateTruncateExpression(
-	private val interval:MysqlTimeIntervalExpression
+	expression:Expression<LocalDateTime>,
+	timeUnit:ChronoUnit,
+	val toTimezone:ZoneId? = null,
+	val fromTimezone:ZoneId = ZoneId.of("UTC"),
+	offset:Int = 0
 ) : DialectExtension, Expression<LocalDateTime> {
+	
+	val expression = toTimezone?.let { expression.convertTimeZone(toTimezone, fromTimezone) } ?: expression
+
+	val interval = MysqlTimeInterval.of(this.expression, timeUnit, offset)
 	
 	override fun appendTo(builder: SQLStatementBuilder, dialect: SQLDialect) {
 		builder.append("(DATE(")
-		dialect.appendExpression(builder, interval.value)
+		dialect.appendExpression(builder, expression)
 		builder.append(") + ")
 		interval.appendTo(builder, dialect)
 		builder.append(")")

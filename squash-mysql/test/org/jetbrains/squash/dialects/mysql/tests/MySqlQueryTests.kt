@@ -13,6 +13,7 @@ import org.junit.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import kotlin.test.assertEquals
 
@@ -68,6 +69,30 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 		assertEquals(LocalDateTime.of(1976, 11, 24, 5, 22), result["minusHours"], "dateSub(3, hours) result is incorrect")
 		assertEquals(LocalDate.of(1976, 11, 25), result["plusDays"], "dateAdd(days) result is incorrect")
 		assertEquals(LocalDateTime.of(1976, 11, 24, 11, 22), result["plusHours"], "dateAdd(3, hours) result is incorrect")
+	}
+
+	@Test
+	fun mysqlTimeZoneFunctions() = withAllColumnTypes {
+		val query = AllColumnTypes.select(
+			AllColumnTypes.datetime.convertTimeZone(ZoneId.of("PST", ZoneId.SHORT_IDS)).alias("pstVersion"),
+			AllColumnTypes.datetime.convertTimeZone(ZoneId.of("America/New_York")).alias("estVersion"),
+			AllColumnTypes.datetime.truncateTo(ChronoUnit.HOURS, ZoneId.of("PST", ZoneId.SHORT_IDS)).alias("pstTruncated"),
+			AllColumnTypes.datetime.alias("original")
+		)
+
+		connection.dialect.statementSQL(query).also {
+			println(it.sql)
+			println(it.arguments)
+		}.assertSQL {
+			"SELECT convert_tz(AllColumnTypes.datetime, ?, ?) AS pstVersion, convert_tz(AllColumnTypes.datetime, ?, ?) AS estVersion, (DATE(convert_tz(AllColumnTypes.datetime, ?, ?)) + INTERVAL EXTRACT(HOUR FROM convert_tz(AllColumnTypes.datetime, ?, ?)) HOUR) AS pstTruncated, AllColumnTypes.datetime AS original FROM AllColumnTypes"
+		}
+		
+		val result = query.execute().single()
+		
+		assertEquals(LocalDateTime.of(1976, 11, 24, 8, 22, 0), result["original"], "Original Date Does Not Match")
+		assertEquals(LocalDateTime.of(1976, 11, 24, 3, 22, 0), result["estVersion"], "EST Date Does Not Match")
+		assertEquals(LocalDateTime.of(1976, 11, 24, 0, 22, 0), result["pstVersion"], "PST Date Does Not Match")
+		assertEquals(LocalDateTime.of(1976, 11, 24, 0, 0, 0), result["pstTruncated"], "PST Date Does Not Match")
 	}
 
 	@Test
