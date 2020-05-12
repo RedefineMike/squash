@@ -6,7 +6,6 @@ import org.jetbrains.squash.query.select
 import org.jetbrains.squash.results.get
 import org.jetbrains.squash.tests.DatabaseTests
 import org.jetbrains.squash.tests.data.AllColumnTypes
-import org.jetbrains.squash.tests.data.Citizens
 import org.jetbrains.squash.tests.data.withAllColumnTypes
 import org.junit.Test
 import java.time.LocalDateTime
