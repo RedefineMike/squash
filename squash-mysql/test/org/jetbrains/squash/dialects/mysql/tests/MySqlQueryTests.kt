@@ -56,11 +56,13 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 			AllColumnTypes.datetime.dateSub(3, ChronoUnit.HOURS).alias("minusHours"),
 			
 			AllColumnTypes.date.dateAdd(1).alias("plusDays"),
-			AllColumnTypes.datetime.dateAdd(3, ChronoUnit.HOURS).alias("plusHours")
+			AllColumnTypes.datetime.dateAdd(3, ChronoUnit.HOURS).alias("plusHours"),
+				
+			AllColumnTypes.datetime.timestampDiff(literal(LocalDateTime.of(1976, 11, 24, 9, 22))).alias("timeDiffSeconds")
 		)
 
 		connection.dialect.statementSQL(query).assertSQL {
-			"SELECT AllColumnTypes.datetime AS originalDate, DATE_SUB(AllColumnTypes.`date`, INTERVAL ? DAY) AS minusDays, DATE_SUB(AllColumnTypes.datetime, INTERVAL ? HOUR) AS minusHours, DATE_ADD(AllColumnTypes.`date`, INTERVAL ? DAY) AS plusDays, DATE_ADD(AllColumnTypes.datetime, INTERVAL ? HOUR) AS plusHours FROM AllColumnTypes"
+			"SELECT AllColumnTypes.datetime AS originalDate, DATE_SUB(AllColumnTypes.`date`, INTERVAL ? DAY) AS minusDays, DATE_SUB(AllColumnTypes.datetime, INTERVAL ? HOUR) AS minusHours, DATE_ADD(AllColumnTypes.`date`, INTERVAL ? DAY) AS plusDays, DATE_ADD(AllColumnTypes.datetime, INTERVAL ? HOUR) AS plusHours, TIMESTAMPDIFF(SECOND, AllColumnTypes.datetime, ?) AS timeDiffSeconds FROM AllColumnTypes"
 		}
 		
 		val result = query.execute().single()
@@ -69,6 +71,7 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 		assertEquals(LocalDateTime.of(1976, 11, 24, 5, 22), result["minusHours"], "dateSub(3, hours) result is incorrect")
 		assertEquals(LocalDate.of(1976, 11, 25), result["plusDays"], "dateAdd(days) result is incorrect")
 		assertEquals(LocalDateTime.of(1976, 11, 24, 11, 22), result["plusHours"], "dateAdd(3, hours) result is incorrect")
+		assertEquals(3600, result["timeDiffSeconds"], "timestampDiff of 1 hour in seconds result is incorrect")
 	}
 
 	@Test

@@ -7,7 +7,6 @@ import org.jetbrains.squash.expressions.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
 /**
@@ -26,6 +25,32 @@ fun Expression<*>.dateSub(value:Number, timeUnit:ChronoUnit = ChronoUnit.DAYS) =
  */
 fun Expression<*>.dateAdd(expression:Expression<Number>, timeUnit:ChronoUnit = ChronoUnit.DAYS) = MysqlDateMathFunction("DATE_ADD", this, MysqlTimeInterval.of(expression, timeUnit))
 fun Expression<*>.dateAdd(value:Number, timeUnit:ChronoUnit = ChronoUnit.DAYS) = dateAdd(LiteralExpression(value), timeUnit)
+
+/**
+ * Returns the result of subtracting the given datetime expression from the original datetime. 
+ * One expression may be a date and the other a datetime; a date value is treated as a datetime 
+ * having the time part '00:00:00' where necessary. The unit for the result (an integer) is 
+ * given by the unit argument. The legal values for unit are the same as those listed in the 
+ * description of the TIMESTAMPADD() function.
+ * See : https://dev.mysql.com/doc/refman/en/date-and-time-functions.html#function_timestampdiff
+ */
+fun Expression<LocalDateTime>.timestampDiff(secondary:Expression<LocalDateTime>, unit:ChronoUnit = ChronoUnit.SECONDS) = TimestampDiffExression(this, secondary, unit)
+
+class TimestampDiffExression(val primary:Expression<LocalDateTime>, val secondary:Expression<LocalDateTime>, val unit:ChronoUnit = ChronoUnit.SECONDS) : DialectExtension, Expression<Int> {
+	
+	override fun appendTo(builder: SQLStatementBuilder, dialect: SQLDialect) {
+		builder.append("TIMESTAMPDIFF(")
+		builder.append(when (unit) {
+			ChronoUnit.SECONDS, ChronoUnit.MICROS, ChronoUnit.MINUTES, ChronoUnit.HOURS, ChronoUnit.DAYS, ChronoUnit.WEEKS, ChronoUnit.MONTHS -> unit.toMySqlIntervalUnit()
+			else -> error("TimestampMathExpression (MySQL TIMESTAMPDIFF doesn't support a unit type of $unit.")
+		} + ", " )
+		dialect.appendExpression(builder, primary)
+		builder.append(", ")
+		dialect.appendExpression(builder, secondary)
+		builder.append(')')
+	}
+
+}
 
 /**
  * Return the year part of a date.
@@ -170,20 +195,20 @@ interface MysqlTimeInterval : DialectExtension {
 		/**
 		 * Creates a [MysqlTimeIntervalStatic] value from a Java [ChronoUnit].
 		 */
-		fun of(value:Expression<Number>, timeUnit:ChronoUnit) = MysqlTimeIntervalStatic(value, chronoUnitToIntervalUnit(timeUnit))
-
-		fun of(value:Expression<LocalDateTime>, timeUnit:ChronoUnit, offset:Int = 0) = MysqlTimeIntervalExpression(value, chronoUnitToIntervalUnit(timeUnit), offset)
+		fun of(value:Expression<Number>, timeUnit:ChronoUnit) = MysqlTimeIntervalStatic(value, timeUnit.toMySqlIntervalUnit())
 		
-		private fun chronoUnitToIntervalUnit(timeUnit:ChronoUnit) = when (timeUnit) {
-			ChronoUnit.MICROS -> "MICROSECOND"
-			ChronoUnit.SECONDS -> "SECOND"
-			ChronoUnit.MINUTES -> "MINUTE"
-			ChronoUnit.HOURS -> "HOUR"
-			ChronoUnit.DAYS -> "DAY"
-			ChronoUnit.MONTHS -> "MONTH"
-			ChronoUnit.YEARS -> "YEAR"
-			ChronoUnit.WEEKS -> "WEEK"
-			else -> error("ChronoUnit not supported by MySQL intervals.")
-		}
+		fun of(value:Expression<LocalDateTime>, timeUnit:ChronoUnit, offset:Int = 0) = MysqlTimeIntervalExpression(value, timeUnit.toMySqlIntervalUnit(), offset)
 	}
+}
+
+private fun ChronoUnit.toMySqlIntervalUnit() = when (this) {
+	ChronoUnit.MICROS -> "MICROSECOND"
+	ChronoUnit.SECONDS -> "SECOND"
+	ChronoUnit.MINUTES -> "MINUTE"
+	ChronoUnit.HOURS -> "HOUR"
+	ChronoUnit.DAYS -> "DAY"
+	ChronoUnit.MONTHS -> "MONTH"
+	ChronoUnit.YEARS -> "YEAR"
+	ChronoUnit.WEEKS -> "WEEK"
+	else -> error("ChronoUnit not supported by MySQL intervals.")
 }
