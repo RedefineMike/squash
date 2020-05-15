@@ -232,5 +232,22 @@ class MySqlQueryTests : QueryTests(), DatabaseTests by MySqlDatabaseTests() {
 		val nullFirst = queryNullFirst.executeOn(transaction).single().get<String>("testValue")
 		assertEquals(nonNullValue, nullFirst)
 	}
+
+	@Test
+	fun mysqlNullIfFunction() = this.createTransaction().use { transaction ->
+		val connection = transaction.connection
+
+		val query = select(
+			literal("someValue").nullIf(literal("someValue")).alias("shouldBeNull"),
+			literal("someValue").nullIf(literal("notSomeValue")).alias("shouldNotBeNull")
+		)
+		connection.dialect.statementSQL(query).assertSQL {
+			"SELECT NULLIF(?, ?) AS shouldBeNull, NULLIF(?, ?) AS shouldNotBeNull"
+		}
+
+		val result = query.executeOn(transaction).single()
+		assertEquals<String?>(null, result["shouldBeNull"])
+		assertEquals<String?>("someValue", result["shouldNotBeNull"])
+	}
 	
 }
