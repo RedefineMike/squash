@@ -16,6 +16,7 @@ abstract class ColumnType(val runtimeType: KClass<*>) {
 object IntColumnType : ColumnType(Int::class)
 object LongColumnType : ColumnType(Long::class)
 object DateColumnType : ColumnType(LocalDate::class)
+object TimeColumnType : ColumnType(LocalTime::class)
 object DateTimeColumnType : ColumnType(LocalDateTime::class)
 object BlobColumnType : ColumnType(BinaryObject::class)
 object BooleanColumnType : ColumnType(Boolean::class)
