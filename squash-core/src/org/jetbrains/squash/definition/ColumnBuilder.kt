@@ -61,6 +61,13 @@ fun TableDefinition.date(name: String): ColumnDefinition<LocalDate> {
 }
 
 /**
+ * Creates a [LocalTime] column
+ */
+fun TableDefinition.time(name: String): ColumnDefinition<LocalTime> {
+	return createColumn(name, TimeColumnType)
+}
+
+/**
  * Creates a [Boolean] column
  */
 fun TableDefinition.bool(name: String): ColumnDefinition<Boolean> {
